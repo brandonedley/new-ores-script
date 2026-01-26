@@ -103,7 +103,6 @@
 					src="https://book.mylimobiz.com/v4/demo-limoanywhere"
 					title="Limo Anywhere Booking Widget"
 					class="w-full"
-					style="height: 600px; min-height: 400px;"
 					allow="geolocation"
 				></iframe>
 			</div>
