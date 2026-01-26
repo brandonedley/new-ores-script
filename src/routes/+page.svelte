@@ -8,7 +8,24 @@
 			if (event.origin !== 'https://book.mylimobiz.com') return;
 
 			const message = event.data;
-			if (!message || message.type !== 'LA_DATALAYER_EVENT') return;
+			if (!message || !message.type) return;
+
+			// Handle height messages
+			if (message.type === 'LA_IFRAME_HEIGHT') {
+				bridgeReady = true;
+				eventLog = [
+					{
+						time: new Date().toLocaleTimeString(),
+						event: 'iframe_height',
+						data: { height: message.height }
+					},
+					...eventLog
+				].slice(0, 50);
+				return;
+			}
+
+			// Handle dataLayer events
+			if (message.type !== 'LA_DATALAYER_EVENT') return;
 
 			const payload = message.payload;
 			if (!payload || !payload.eventName) return;
@@ -53,6 +70,10 @@
 		data-debug="true"
 		data-measurement-id="G-ZW4QZ889NM"
 		data-allowed-origins="https://book.mylimobiz.com"
+		data-iframe-selector="iframe[src*='book.mylimobiz.com']"
+		data-min-height="400"
+		data-max-height="2000"
+		data-enable-height-resize="true"
 		src="https://mrzmqoooanbzfuffrcef.supabase.co/storage/v1/object/public/cdn/la-bridge/parent-receiver.min.js"
 	></script>
 </svelte:head>
@@ -77,11 +98,12 @@
 		<!-- Iframe Section -->
 		<section class="rounded-lg bg-white p-4 shadow">
 			<h2 class="mb-4 text-lg font-semibold text-gray-800">Booking Widget (iframe)</h2>
-			<div class="aspect-[4/3] w-full overflow-hidden rounded border border-gray-300">
+			<div class="w-full overflow-hidden rounded border border-gray-300">
 				<iframe
 					src="https://book.mylimobiz.com/v4/demo-limoanywhere"
 					title="Limo Anywhere Booking Widget"
-					class="h-full w-full"
+					class="w-full"
+					style="height: 600px; min-height: 400px;"
 					allow="geolocation"
 				></iframe>
 			</div>
@@ -156,8 +178,8 @@
 				<span class="ml-2 font-mono text-xs">la_</span>
 			</div>
 			<div>
-				<span class="text-gray-500">Debug Mode:</span>
-				<span class="ml-2 font-mono text-xs">true</span>
+				<span class="text-gray-500">Height Resize:</span>
+				<span class="ml-2 font-mono text-xs">400-2000px</span>
 			</div>
 		</div>
 	</section>
