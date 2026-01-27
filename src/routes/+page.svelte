@@ -6,7 +6,7 @@
 
 	onMount(() => {
 		// Listen for postMessage events
-		window.addEventListener('message', (event) => {
+		const handleMessage = (event: MessageEvent) => {
 			if (event.origin !== 'https://book.mylimobiz.com') return;
 
 			const message = event.data;
@@ -16,7 +16,9 @@
 				bridgeReady = true;
 				eventCount++;
 			}
-		});
+		};
+
+		window.addEventListener('message', handleMessage);
 
 		// Load the bridge script AFTER the iframe exists in DOM
 		const script = document.createElement('script');
@@ -31,6 +33,12 @@
 		script.src =
 			'https://mrzmqoooanbzfuffrcef.supabase.co/storage/v1/object/public/cdn/la-bridge/parent-receiver.min.js';
 		document.body.appendChild(script);
+
+		// Cleanup on unmount
+		return () => {
+			window.removeEventListener('message', handleMessage);
+			script.remove();
+		};
 	});
 </script>
 
