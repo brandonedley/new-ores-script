@@ -1,8 +1,19 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
+	import * as Sheet from '$lib/components/ui/sheet';
+	import { ScrollArea } from '$lib/components/ui/scroll-area';
+	import { Button } from '$lib/components/ui/button';
+
+	interface BridgeEvent {
+		id: number;
+		type: string;
+		timestamp: Date;
+		data?: Record<string, unknown>;
+	}
 
 	let bridgeReady = $state(false);
-	let eventCount = $state(0);
+	let events = $state<BridgeEvent[]>([]);
+	let eventId = 0;
 
 	onMount(() => {
 		// Listen for postMessage events
@@ -14,7 +25,15 @@
 
 			if (message.type === 'LA_IFRAME_HEIGHT' || message.type === 'LA_DATALAYER_EVENT') {
 				bridgeReady = true;
-				eventCount++;
+				events = [
+					{
+						id: ++eventId,
+						type: message.type,
+						timestamp: new Date(),
+						data: message.type === 'LA_DATALAYER_EVENT' ? message.payload : { height: message.height }
+					},
+					...events
+				].slice(0, 100); // Keep last 100 events
 			}
 		};
 
@@ -40,6 +59,22 @@
 			script.remove();
 		};
 	});
+
+	function formatTime(date: Date): string {
+		return date.toLocaleTimeString('en-US', {
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit'
+		});
+	}
+
+	function getEventLabel(type: string): string {
+		return type === 'LA_IFRAME_HEIGHT' ? 'Height' : 'DataLayer';
+	}
+
+	function getEventColor(type: string): string {
+		return type === 'LA_IFRAME_HEIGHT' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800';
+	}
 </script>
 
 <svelte:head>
@@ -60,7 +95,43 @@
 					></span>
 					{bridgeReady ? 'Connected' : 'Waiting...'}
 				</span>
-				<span class="text-slate-400">Events: {eventCount}</span>
+
+				<Sheet.Root>
+					<Sheet.Trigger>
+						<Button variant="ghost" size="sm" class="text-slate-300 hover:text-white hover:bg-slate-700">
+							Events: {events.length}
+						</Button>
+					</Sheet.Trigger>
+					<Sheet.Content side="right" class="w-[400px] sm:w-[540px]">
+						<Sheet.Header>
+							<Sheet.Title>Bridge Events</Sheet.Title>
+							<Sheet.Description>
+								Showing {events.length} events from the widget iframe
+							</Sheet.Description>
+						</Sheet.Header>
+						<ScrollArea class="h-[calc(100vh-140px)] pr-4">
+							{#if events.length === 0}
+								<p class="text-sm text-muted-foreground py-4">No events yet. Interact with the widget to see events.</p>
+							{:else}
+								<div class="space-y-2">
+									{#each events as event (event.id)}
+										<div class="rounded-lg border bg-card p-3 text-sm">
+											<div class="flex items-center justify-between mb-1">
+												<span class="text-xs px-2 py-0.5 rounded-full font-medium {getEventColor(event.type)}">
+													{getEventLabel(event.type)}
+												</span>
+												<span class="text-xs text-muted-foreground">{formatTime(event.timestamp)}</span>
+											</div>
+											{#if event.data}
+												<pre class="text-xs mt-2 p-2 bg-muted rounded overflow-x-auto">{JSON.stringify(event.data, null, 2)}</pre>
+											{/if}
+										</div>
+									{/each}
+								</div>
+							{/if}
+						</ScrollArea>
+					</Sheet.Content>
+				</Sheet.Root>
 			</div>
 		</div>
 	</header>
