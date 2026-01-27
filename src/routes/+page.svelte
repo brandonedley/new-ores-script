@@ -1,9 +1,11 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
+
 	let bridgeReady = $state(false);
 	let eventCount = $state(0);
 
-	// Listen for postMessage events
-	if (typeof window !== 'undefined') {
+	onMount(() => {
+		// Listen for postMessage events
 		window.addEventListener('message', (event) => {
 			if (event.origin !== 'https://book.mylimobiz.com') return;
 
@@ -15,23 +17,25 @@
 				eventCount++;
 			}
 		});
-	}
+
+		// Load the bridge script AFTER the iframe exists in DOM
+		const script = document.createElement('script');
+		script.setAttribute('data-la-bridge', '');
+		script.setAttribute('data-debug', 'true');
+		script.setAttribute('data-measurement-id', 'G-ZW4QZ889NM');
+		script.setAttribute('data-allowed-origins', 'https://book.mylimobiz.com');
+		script.setAttribute('data-iframe-selector', 'iframe[src*="book.mylimobiz.com"]');
+		script.setAttribute('data-min-height', '400');
+		script.setAttribute('data-max-height', '2000');
+		script.setAttribute('data-enable-height-resize', 'true');
+		script.src =
+			'https://mrzmqoooanbzfuffrcef.supabase.co/storage/v1/object/public/cdn/la-bridge/parent-receiver.min.js';
+		document.body.appendChild(script);
+	});
 </script>
 
 <svelte:head>
 	<title>DataLayer Bridge Test</title>
-	<!-- Parent Receiver - configured via data attributes -->
-	<script
-		data-la-bridge
-		data-debug="true"
-		data-measurement-id="G-ZW4QZ889NM"
-		data-allowed-origins="https://book.mylimobiz.com"
-		data-iframe-selector="iframe[src*='book.mylimobiz.com']"
-		data-min-height="400"
-		data-max-height="2000"
-		data-enable-height-resize="true"
-		src="https://mrzmqoooanbzfuffrcef.supabase.co/storage/v1/object/public/cdn/la-bridge/parent-receiver.min.js"
-	></script>
 </svelte:head>
 
 <div class="min-h-screen bg-gray-100">
@@ -60,7 +64,7 @@
 				src="https://book.mylimobiz.com/v4/demo-limoanywhere"
 				title="Limo Anywhere Booking Widget"
 				class="w-full"
-				style="height: 800px; min-height: 400px; border: none;"
+				style="min-height: 400px; border: none;"
 				scrolling="no"
 				allow="geolocation"
 			></iframe>
