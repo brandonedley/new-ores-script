@@ -60,7 +60,7 @@
 		script.setAttribute('data-allowed-origins', 'https://book.mylimobiz.com');
 		script.setAttribute('data-iframe-selector', 'iframe[src*="book.mylimobiz.com"]');
 		script.setAttribute('data-min-height', '400');
-		script.setAttribute('data-max-height', '2000');
+		script.setAttribute('data-max-height', '2500');
 		script.setAttribute('data-enable-height-resize', 'true');
 		script.src = '/la-bridge/parent-receiver.min.js';
 		document.body.appendChild(script);
