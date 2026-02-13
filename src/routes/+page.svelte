@@ -15,7 +15,14 @@
 	let events = $state<BridgeEvent[]>([]);
 	let eventId = 0;
 
+	const MIN_HEIGHT = 400;
+	const MAX_HEIGHT = 2000;
+
 	onMount(() => {
+		const iframe = document.querySelector(
+			'iframe[src*="book.mylimobiz.com"]'
+		) as HTMLIFrameElement | null;
+
 		// Listen for postMessage events
 		const handleMessage = (event: MessageEvent) => {
 			if (event.origin !== 'https://book.mylimobiz.com') return;
@@ -35,6 +42,12 @@
 					...events
 				].slice(0, 100); // Keep last 100 events
 			}
+
+			// Apply height directly so we don't depend on the bridge script's timing
+			if (message.type === 'LA_IFRAME_HEIGHT' && iframe && typeof message.height === 'number') {
+				const clamped = Math.max(MIN_HEIGHT, Math.min(MAX_HEIGHT, message.height));
+				iframe.style.height = clamped + 'px';
+			}
 		};
 
 		window.addEventListener('message', handleMessage);
@@ -49,8 +62,7 @@
 		script.setAttribute('data-min-height', '400');
 		script.setAttribute('data-max-height', '2000');
 		script.setAttribute('data-enable-height-resize', 'true');
-		script.src =
-			'https://mrzmqoooanbzfuffrcef.supabase.co/storage/v1/object/public/cdn/la-bridge/parent-receiver.min.js';
+		script.src = '/la-bridge/parent-receiver.min.js';
 		document.body.appendChild(script);
 
 		// Cleanup on unmount
